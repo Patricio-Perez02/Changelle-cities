@@ -16,6 +16,10 @@ struct City: Codable {
         case id = "_id"
         case coordinates = "coord"
     }
+    
+    var fullName: String {
+        return "\(name ?? ""), \(country ?? "")"
+    }
 }
 
 struct CoordinatesData: Codable {
