@@ -22,41 +22,30 @@ struct CitiesView: View {
                 }
                 .ignoresSafeArea()
                 
-                if geometry.size.width > geometry.size.height {
-                    getListLandscape(width: geometry.size.width)
-                } else {
-                    getListPortrait()
+                let isLandscape = geometry.size.width > geometry.size.height
+                HStack {
+                    SearchableCityFloatingView(
+                        placeholder: "Search city",
+                        cities: viewModel.filteredCities,
+                        searchText: $viewModel.citiesSearchText,
+                        seletectedCity: $viewModel.selectedCity,
+                        activeFilters: $viewModel.activeFilters,
+                        favoriteAction: { id in
+                            viewModel.toggleFavorite(cityId: id)
+                        }, navigationCityAction: { city in
+                            print("City: \(city.fullName) selected")
+                        }
+                    )
+                    .frame(maxWidth: isLandscape ? geometry.size.width / 2 : .infinity, alignment: .leading)
+                    .padding(.top)
+                    
+                    if isLandscape {
+                        Spacer()
+                    }
                 }
             }
+            .onAppear(perform: viewModel.onAppear)
         }
-    }
-    
-    var searchableList: some View {
-        SearchableCityFloatingView(
-            placeholder: "",
-            cities: .constant(viewModel.filteredCities),
-            searchText: $viewModel.citiesSearchText,
-            seletectedCity: $viewModel.selectedCity
-        )
-    }
-    
-    func getListLandscape(width: CGFloat) -> some View {
-        HStack {
-            searchableList
-            .frame(width: width / 2)
-            
-            Spacer()
-        }
-        .padding(.top)
-    }
-    
-    func getListPortrait() -> some View {
-        VStack {
-            Spacer()
-            
-            searchableList
-        }
-        .padding(.top)
     }
 }
 
