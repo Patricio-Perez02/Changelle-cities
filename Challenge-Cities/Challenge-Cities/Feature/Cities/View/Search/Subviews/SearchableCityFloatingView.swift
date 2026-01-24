@@ -50,11 +50,14 @@ struct SearchableCityFloatingView: View {
                                         .onTapGesture {
                                             seletectedCity = city
                                             searchText = city.fullName
-                                            isExpanded = false
+                                            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                                isExpanded = false
+                                            }
                                         }
                                 }
                             }
                         }
+                        .frame(height: calculateListHeight)
                         .scrollIndicators(.hidden)
                     }
                 }

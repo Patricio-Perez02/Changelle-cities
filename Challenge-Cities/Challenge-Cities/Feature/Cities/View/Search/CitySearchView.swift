@@ -8,8 +8,11 @@
 import SwiftUI
 import MapKit
 
-struct CitiesView: View {
-    @StateObject private var viewModel = CitiesViewModel(services: CitiesServices())
+struct CitySearchView: View {
+    @StateObject private var viewModel = CitySearchViewModel(
+        services: CitiesServices(),
+        storage: CitiesStorage()
+    )
     
     var body: some View {
         GeometryReader { geometry in
@@ -50,5 +53,5 @@ struct CitiesView: View {
 }
 
 #Preview {
-    CitiesView()
+    CitySearchView()
 }

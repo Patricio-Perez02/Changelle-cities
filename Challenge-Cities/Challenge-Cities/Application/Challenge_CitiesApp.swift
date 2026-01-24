@@ -11,7 +11,7 @@ import SwiftUI
 struct Challenge_CitiesApp: App {
     var body: some Scene {
         WindowGroup {
-            CitiesView()
+            CitySearchView()
         }
     }
 }

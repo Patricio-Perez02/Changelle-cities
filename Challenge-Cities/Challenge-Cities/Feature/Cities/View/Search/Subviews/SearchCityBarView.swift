@@ -40,13 +40,12 @@ struct SearchCityBarView: View {
                     .clipShape(
                         RoundedRectangle(cornerRadius: 20, style: .continuous)
                     )
+                    .transition(.scale.combined(with: .opacity))
                     .onAppear {
-                        DispatchQueue.main.async {
-                            isFocused.wrappedValue = true
-                        }
+                        setFocused(value: true)
                     }
                     .onDisappear {
-                        isFocused.wrappedValue = false
+                        setFocused(value: false)
                     }
                 
                 PillButton(image: Image(systemName: "heart\(favoriteApplied ? ".fill" : "")")) {
@@ -65,6 +64,13 @@ struct SearchCityBarView: View {
             activeFilters.remove(at: index)
         } else {
             activeFilters.append(filter)
+        }
+    }
+    
+    private func setFocused(value: Bool) {
+        Task { @MainActor in
+            await Task.yield()
+            isFocused.wrappedValue = value
         }
     }
 }
