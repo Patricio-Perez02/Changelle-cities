@@ -13,6 +13,7 @@ final class TrieNode<T> {
 protocol TrieProtocol {
     associatedtype Value
     func search(prefix: String) -> [Value]
+    func removeAll()
 }
 
 final class Trie<T>: TrieProtocol {
@@ -21,6 +22,9 @@ final class Trie<T>: TrieProtocol {
     
     func insert(key: String, value: T) {
         var node = root
+        
+        node.children.removeAll()
+        node.values.removeAll()
         
         for char in key.lowercased() {
             if let child = node.children[char] {
@@ -46,6 +50,11 @@ final class Trie<T>: TrieProtocol {
             node = next
         }
         return collectValues(from: node)
+    }
+    
+    func removeAll() {
+        root.children.removeAll()
+        root.values.removeAll()
     }
     
     private func collectValues(from node: TrieNode<T>) -> [T] {

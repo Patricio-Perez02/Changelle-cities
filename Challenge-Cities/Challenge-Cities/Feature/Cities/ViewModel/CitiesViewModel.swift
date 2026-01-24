@@ -22,6 +22,8 @@ final class CitiesViewModel: ObservableObject {
     @Published var citiesSearchText: String = ""
     @Published var selectedPosition: MapCameraPosition = .automatic
     @Published private(set) var filteredCities: [City] = []
+    @Published private(set) var favoriteCityIDs: Set<Int> = []
+    @Published var activeFilters: [CitiesFilter] = []
     @Published var selectedCity: City? {
         didSet {
             guard let city = selectedCity, let coordinates = city.coordinates else { return }
@@ -41,12 +43,26 @@ final class CitiesViewModel: ObservableObject {
         services: CitiesServicesProtocol
     ) {
         self.services = services
-        
+        bind()
+    }
+    
+    // MARK: - Public methods
+    func onAppear() {
         Task {
             await fetchCities()
         }
+    }
+    
+    func toggleFavorite(cityId: Int?) {
+        guard let id = cityId else { return }
         
-        bind()
+        if favoriteCityIDs.contains(id) {
+            favoriteCityIDs.remove(id)
+        } else {
+            favoriteCityIDs.insert(id)
+        }
+        
+        updateCitiesFavoriteState()
     }
     
     // MARK: - Private methods
@@ -62,19 +78,47 @@ final class CitiesViewModel: ObservableObject {
     }
     
     private func bind() {
-        $citiesSearchText
-            .debounce(for: .milliseconds(250), scheduler: RunLoop.main)
-            .removeDuplicates()
-            .map { [weak self] text in
-                guard let self, !text.isEmpty else {
-                    return self?.cities.sortedAlphabetically(by: \.fullName) ?? []
+        Publishers.CombineLatest($citiesSearchText, $activeFilters)
+                .debounce(for: .milliseconds(250), scheduler: RunLoop.main)
+                .sink { [weak self] _, _ in
+                    self?.applySearchAndFilters()
                 }
-                
-                let results = trie.search(prefix: text)
-                let sorted = results.sortedAlphabetically(by: \.fullName)
-                return sorted
+                .store(in: &cancellables)
+    }
+    
+    private func applySearchAndFilters() {
+        let searchResults = citiesSearchText.isEmpty ? cities : trie.search(prefix: citiesSearchText)
+        
+        filteredCities = applyFilters(to: searchResults).sortedAlphabetically(by: \.fullName)
+    }
+    
+    private func applyFilters(to cities: [City]) -> [City] {
+        return activeFilters.reduce(into: cities) { partialResult, filter in
+            switch filter {
+            case .favorites:
+                partialResult = partialResult.filter { $0.isFavorite }
+
+            case .country(let country):
+                partialResult = partialResult.filter { $0.country == country }
+
+            case .coordinates(let lat, let lon):
+                partialResult = partialResult.filter { $0.coordinates?.latitude == lat && $0.coordinates?.longitude == lon }
             }
-            .receive(on: RunLoop.main)
-            .assign(to: &$filteredCities)
+        }
+    }
+    
+    private func updateCitiesFavoriteState() {
+        cities = applyingFavorites(to: cities)
+        filteredCities = applyingFavorites(to: filteredCities)
+    }
+    
+    private func applyingFavorites(to cities: [City]) -> [City] {
+        cities.map { city in
+            guard let id = city.id else { return city }
+
+            var updated = city
+            updated.isFavorite = favoriteCityIDs.contains(id)
+            return updated
+        }
     }
 }

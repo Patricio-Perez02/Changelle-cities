@@ -5,7 +5,7 @@
 //  Created by Patricio Perez on 20/01/2026.
 //
 
-struct City: Codable {
+struct City: Identifiable, Codable {
     let country: String?
     let name: String?
     let id: Int?
@@ -20,6 +20,8 @@ struct City: Codable {
     var fullName: String {
         return "\(name ?? ""), \(country ?? "")"
     }
+    
+    var isFavorite: Bool = false
 }
 
 struct CoordinatesData: Codable {
