@@ -68,9 +68,11 @@ final class CitiesViewModel: ObservableObject {
     // MARK: - Private methods
     private func fetchCities() async {
         do {
-            cities = try await self.services.getCities()
-            cities.forEach { trie.insert(key: $0.fullName, value: $0) }
-            filteredCities = cities.sortedAlphabetically(by: \.fullName)
+            let fetchedCities = try await services.getCities()
+            fetchedCities.forEach { trie.insert(key: $0.fullName, value: $0) }
+            let sortedCities = fetchedCities.sortedAlphabetically(by: \.fullName)
+            cities = sortedCities
+            filteredCities = sortedCities
         } catch {
             // TODO: - Screen view?
             debugPrint("Error fetching cities: \(String(describing: error))")
@@ -78,22 +80,41 @@ final class CitiesViewModel: ObservableObject {
     }
     
     private func bind() {
-        Publishers.CombineLatest($citiesSearchText, $activeFilters)
-                .debounce(for: .milliseconds(250), scheduler: RunLoop.main)
-                .sink { [weak self] _, _ in
-                    self?.applySearchAndFilters()
-                }
-                .store(in: &cancellables)
+        Publishers.CombineLatest(
+            $citiesSearchText.removeDuplicates(),
+            $activeFilters.removeDuplicates()
+        )
+        .debounce(for: .milliseconds(250), scheduler: RunLoop.main)
+        .sink { [weak self] searchText, activeFilters in
+            self?.applySearchAndFilters(searchText: searchText, activeFilters: activeFilters)
+        }
+        .store(in: &cancellables)
     }
     
-    private func applySearchAndFilters() {
-        let searchResults = citiesSearchText.isEmpty ? cities : trie.search(prefix: citiesSearchText)
-        
-        filteredCities = applyFilters(to: searchResults).sortedAlphabetically(by: \.fullName)
+    private func applySearchAndFilters(
+        searchText: String,
+        activeFilters: [CitiesFilter]
+    ) {
+        if searchText.isEmpty {
+            if activeFilters.isEmpty {
+                filteredCities = cities
+                return
+            }
+
+            filteredCities = applyFilters(activeFilters, to: cities)
+            return
+        }
+
+        let searchResults = trie.search(prefix: searchText)
+        let filteredResults = applyFilters(activeFilters, to: searchResults)
+        filteredCities = filteredResults.sortedAlphabetically(by: \.fullName)
     }
     
-    private func applyFilters(to cities: [City]) -> [City] {
-        return activeFilters.reduce(into: cities) { partialResult, filter in
+    private func applyFilters(
+        _ filters: [CitiesFilter],
+        to cities: [City]
+    ) -> [City] {
+        return filters.reduce(into: cities) { partialResult, filter in
             switch filter {
             case .favorites:
                 partialResult = partialResult.filter { $0.isFavorite }
