@@ -55,6 +55,7 @@ struct SearchableCityFloatingView: View {
                                 }
                             }
                         }
+                        .frame(height: calculateListHeight)
                         .scrollIndicators(.hidden)
                     }
                 }
