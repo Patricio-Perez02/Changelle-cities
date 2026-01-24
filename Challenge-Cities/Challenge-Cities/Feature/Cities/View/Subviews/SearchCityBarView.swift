@@ -40,6 +40,7 @@ struct SearchCityBarView: View {
                     .clipShape(
                         RoundedRectangle(cornerRadius: 20, style: .continuous)
                     )
+                    .transition(.scale.combined(with: .opacity))
                     .onAppear {
                         DispatchQueue.main.async {
                             isFocused.wrappedValue = true
