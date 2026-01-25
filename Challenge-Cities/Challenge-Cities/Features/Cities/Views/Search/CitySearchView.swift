@@ -13,6 +13,7 @@ struct CitySearchView: View {
         services: CitiesServices(),
         storage: CitiesStorage()
     )
+    @EnvironmentObject private var router: AppRouter
     
     var body: some View {
         GeometryReader { geometry in
@@ -46,8 +47,13 @@ struct CitySearchView: View {
                         Spacer()
                     }
                 }
+                
+                if viewModel.isLoading {
+                    LoadingView(text: "Loading cities...")
+                }
             }
             .onAppear(perform: viewModel.onAppear)
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 }
