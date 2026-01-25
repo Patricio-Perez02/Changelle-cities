@@ -8,7 +8,6 @@
 import Foundation
 
 protocol CitiesStorageProtocol {
-//    var favorites: Set<Int> { get }
     func isFavorite(id: Int) -> Bool
     func toggle(id: Int)
 }
