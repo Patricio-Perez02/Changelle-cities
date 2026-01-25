@@ -36,7 +36,7 @@ struct CitySearchView: View {
                         favoriteAction: { id in
                             viewModel.toggleFavorite(cityId: id)
                         }, navigationCityAction: { city in
-                            print("City: \(city.fullName) selected")
+                            viewModel.cityMoreInfo(cityId: city.id)
                         }
                     )
                     .frame(maxWidth: isLandscape ? geometry.size.width / 2 : .infinity, alignment: .leading)

@@ -76,6 +76,13 @@ final class CitySearchViewModel: ObservableObject {
         updateCityFavoriteState(cityId: id, isFavorite: newFavoriteState)
     }
     
+    /// User requests more information about a city
+    /// - Parameter cityId: The ID of the city for which more information is requested
+    func cityMoreInfo(cityId: Int?) {
+        guard let id = cityId else { return }
+        print("City detail requested for city with ID: \(id)")
+    }
+    
     // MARK: - Private methods
     
     /// Fetches cities from the service and updates the local state

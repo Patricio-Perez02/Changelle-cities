@@ -26,4 +26,9 @@ final class MockCitiesStorage: CitiesStorageProtocol {
     func getFavorites() -> Set<Int> {
         return favorites
     }
+    
+    // Helper methods for testing
+    func setFavorites(_ ids: Set<Int>) {
+        favorites = ids
+    }
 }
