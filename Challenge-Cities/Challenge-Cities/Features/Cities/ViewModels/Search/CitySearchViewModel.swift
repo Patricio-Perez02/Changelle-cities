@@ -34,7 +34,7 @@ final class CitySearchViewModel: ObservableObject {
     @Published var selectedPosition: MapCameraPosition = .automatic
     @Published private(set) var filteredCities: [City] = []
     @Published var activeFilters: [CitiesFilter] = []
-    @Published var isLoading: Bool = false
+    @Published var loadingMessage: String? = ""
     @Published var errorMessage: String?
     
     @Published var selectedCity: City? {
@@ -81,20 +81,30 @@ final class CitySearchViewModel: ObservableObject {
     /// - Parameter city: The ID of the city for which more information is requested
     func cityMoreInfo(city: City?) {
         guard let city else { return }
-        
+        citiesSearchText = ""
         Task {
-            let response = try await services.getCityInformation(with: city)
-            
-            if let information = response {
-                route = .cityDetail(information: information)
+            loadingMessage = "Fetching information..."
+            errorMessage = nil
+            do {
+                let response = try await services.getCityInformation(with: city)
+
+                if let information = response {
+                    route = .cityDetail(information: information)
+                } else {
+                    errorMessage = "No information found for this city."
+                }
+            } catch {
+                errorMessage = "Failed to load city information. Please try again."
             }
+            
+            loadingMessage = nil
         }
     }
     
     // MARK: - Private methods
     /// Fetches cities from the service and updates the local state
     private func fetchCities() async {
-        isLoading = true
+        loadingMessage = "Loading cities..."
         errorMessage = nil
         
         do {
@@ -114,10 +124,9 @@ final class CitySearchViewModel: ObservableObject {
             filteredCities = citiesWithFavorites
         } catch {
             errorMessage = "Failed to load cities. Please try again."
-            debugPrint("Error fetching cities: \(error)")
         }
         
-        isLoading = false
+        loadingMessage = nil
     }
     
     /// Sets up reactive bindings for search text and filters

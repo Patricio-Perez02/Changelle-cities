@@ -16,9 +16,13 @@ struct CitySearchView: View {
         GeometryReader { geometry in
             ZStack {
                 Map(position: $viewModel.selectedPosition) {
-                    if let selectedCity = viewModel.selectedCity,
-                       let center = viewModel.selectedPosition.region?.center {
-                        Marker(selectedCity.fullName, coordinate: center)
+                    if let city = viewModel.selectedCity,
+                       let lat = city.coordinates?.latitude,
+                       let lon = city.coordinates?.longitude {
+                        Marker(
+                            city.fullName,
+                            coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                        )
                     }
                 }
                 .ignoresSafeArea()
@@ -45,8 +49,8 @@ struct CitySearchView: View {
                     }
                 }
                 
-                if viewModel.isLoading {
-                    LoadingView(text: "Loading cities...")
+                if let message = viewModel.loadingMessage {
+                    LoadingView(text: message)
                 }
             }
             .onAppear(perform: viewModel.onAppear)
@@ -55,6 +59,11 @@ struct CitySearchView: View {
                 guard let route else { return }
                 router.route(to: .cities(route))
                 viewModel.route = nil
+            }
+            .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(viewModel.errorMessage ?? "")
             }
         }
     }

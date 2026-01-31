@@ -45,15 +45,20 @@ struct SearchableCityFloatingView: View {
                         ScrollView {
                             LazyVStack(alignment: .leading, spacing: .zero) {
                                 ForEach(cities, id: \.id) { city in
-                                    CityView(city: city, isFavourite: city.isFavorite, favoriteAction: favoriteAction, navigationAction: navigationCityAction)
-                                        .frame(height: LocalConstants.rowHeight)
-                                        .onTapGesture {
-                                            seletectedCity = city
-                                            searchText = city.fullName
-                                            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
-                                                isExpanded = false
-                                            }
+                                    CityView(city: city, isFavourite: city.isFavorite, favoriteAction: favoriteAction) { city in
+                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                            isExpanded = false
                                         }
+                                        navigationCityAction(city)
+                                    }
+                                    .frame(height: LocalConstants.rowHeight)
+                                    .onTapGesture {
+                                        seletectedCity = city
+                                        searchText = city.fullName
+                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                            isExpanded = false
+                                        }
+                                    }
                                 }
                             }
                         }
