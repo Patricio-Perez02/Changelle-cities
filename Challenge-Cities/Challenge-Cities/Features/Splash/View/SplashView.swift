@@ -75,11 +75,12 @@ struct SplashView: View {
         }
         .onChange(of: viewModel.isFinished) { _, newValue in
             if newValue {
-                router.route(to: .citySearch)
+                router.route(to: .cities(.search))
             }
         }
     }
 }
+
 #Preview {
     SplashView()
 }

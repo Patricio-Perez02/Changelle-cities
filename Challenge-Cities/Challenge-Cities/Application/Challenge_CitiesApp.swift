@@ -9,9 +9,10 @@ import SwiftUI
 
 @main
 struct Challenge_CitiesApp: App {
+    private let resolver: AppDependencyResolverProtocol = AppDependencyResolver()
     var body: some Scene {
         WindowGroup {
-            RootView()
+            RootView(resolver: resolver)
         }
     }
 }

@@ -17,7 +17,7 @@ protocol NetworkingManagerProtocol {
     /// - Parameter endpoint: The endpoint describing the request configuration.
     /// - Returns: A decoded model of type `T`.
     /// - Throws: A `NetworkError` if the request fails or decoding fails.
-    func request<T: Decodable>(_ endpoint: Endpoint) async throws -> T
+    func request<T: Decodable>(_ endpoint: EndpointProtocol) async throws -> T
 }
 
 final class NetworkingManager: NetworkingManagerProtocol {
@@ -33,12 +33,9 @@ final class NetworkingManager: NetworkingManagerProtocol {
     }
     
     // MARK: - NetwokingManagerProtocol methods
-    func request<T>(_ endpoint: Endpoint) async throws -> T where T : Decodable {
-        guard let url = endpoint.url else {
-            throw NetworkError.invalidURL
-        }
-        
-        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+    func request<T>(_ endpoint: EndpointProtocol) async throws -> T where T : Decodable {
+        var components = URLComponents(string: endpoint.baseURL)
+        components?.path += endpoint.path
         components?.queryItems = endpoint.queryItems
         
         guard let finalURL = components?.url else {

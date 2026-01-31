@@ -9,11 +9,8 @@ import SwiftUI
 import MapKit
 
 struct CitySearchView: View {
-    @StateObject private var viewModel = CitySearchViewModel(
-        services: CitiesServices(),
-        storage: CitiesStorage()
-    )
     @EnvironmentObject private var router: AppRouter
+    @StateObject var viewModel: CitySearchViewModel
     
     var body: some View {
         GeometryReader { geometry in
@@ -37,7 +34,7 @@ struct CitySearchView: View {
                         favoriteAction: { id in
                             viewModel.toggleFavorite(cityId: id)
                         }, navigationCityAction: { city in
-                            viewModel.cityMoreInfo(cityId: city.id)
+                            viewModel.cityMoreInfo(city: city)
                         }
                     )
                     .frame(maxWidth: isLandscape ? geometry.size.width / 2 : .infinity, alignment: .leading)
@@ -54,10 +51,20 @@ struct CitySearchView: View {
             }
             .onAppear(perform: viewModel.onAppear)
             .toolbar(.hidden, for: .navigationBar)
+            .onChange(of: viewModel.route) { _, route in
+                guard let route else { return }
+                router.route(to: .cities(route))
+                viewModel.route = nil
+            }
         }
     }
 }
 
 #Preview {
-    CitySearchView()
+    CitySearchView(
+        viewModel: CitySearchViewModel(
+            services: CitiesServices(),
+            storage: CitiesStorage()
+        )
+    )
 }

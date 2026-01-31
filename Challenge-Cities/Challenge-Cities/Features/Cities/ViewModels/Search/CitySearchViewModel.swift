@@ -15,7 +15,7 @@ final class CitySearchViewModel: ObservableObject {
     // MARK: - Private properties
     private var cancellables: Set<AnyCancellable> = []
     private let trie = Trie<City>()
-    private let services: CitiesServicesProtocol
+    private let services: CitiesServicesProtocol & CityInformationServicesProtocol
     private let storage: CitiesStorageProtocol
     
     // Cached dictionaries for O(1) lookups
@@ -29,6 +29,7 @@ final class CitySearchViewModel: ObservableObject {
         }
     }
     
+    @Published var route: CitiesRoutes?
     @Published var citiesSearchText: String = ""
     @Published var selectedPosition: MapCameraPosition = .automatic
     @Published private(set) var filteredCities: [City] = []
@@ -45,7 +46,7 @@ final class CitySearchViewModel: ObservableObject {
     // MARK: - Initialization
     
     init(
-        services: CitiesServicesProtocol,
+        services: CitiesServicesProtocol & CityInformationServicesProtocol,
         storage: CitiesStorageProtocol
     ) {
         self.services = services
@@ -77,14 +78,20 @@ final class CitySearchViewModel: ObservableObject {
     }
     
     /// User requests more information about a city
-    /// - Parameter cityId: The ID of the city for which more information is requested
-    func cityMoreInfo(cityId: Int?) {
-        guard let id = cityId else { return }
-        print("City detail requested for city with ID: \(id)")
+    /// - Parameter city: The ID of the city for which more information is requested
+    func cityMoreInfo(city: City?) {
+        guard let city else { return }
+        
+        Task {
+            let response = try await services.getCityInformation(with: city)
+            
+            if let information = response {
+                route = .cityDetail(information: information)
+            }
+        }
     }
     
     // MARK: - Private methods
-    
     /// Fetches cities from the service and updates the local state
     private func fetchCities() async {
         isLoading = true

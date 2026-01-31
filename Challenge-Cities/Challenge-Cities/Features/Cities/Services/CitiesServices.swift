@@ -7,16 +7,7 @@
 
 import Combine
 
-/// Defines the interface for fetching city-related data.
-protocol CitiesServicesProtocol {
-    /// Fetches the list of cities.
-    ///
-    /// - Returns: An array of `City` models.
-    /// - Throws: A `NetworkError` if the request fails.
-    func getCities() async throws -> [City]
-}
-
-final class CitiesServices: CitiesServicesProtocol {
+final class CitiesServices: CitiesServicesProtocol, CitySearchServicesProtocol, CityInformationServicesProtocol {
     // MARK: - Private properties
     private let networkingManager: NetworkingManagerProtocol
     
@@ -33,6 +24,30 @@ final class CitiesServices: CitiesServicesProtocol {
     
     // MARK: - CitiesServiciesProtocol methods
     func getCities() async throws -> [City] {
-        try await networkingManager.request(.cities)
+        try await networkingManager.request(Endpoint.cities)
+    }
+    
+    // MARK: - CitySearchServicesProtocol methods
+    func searchCity(from city: City) async throws -> GeonamesCityData? {
+        guard let lat = city.coordinates?.latitude, let lon = city.coordinates?.longitude else {
+            return nil
+        }
+        
+        let response: GeonamesResponse = try await networkingManager.request(Endpoint.citySearch(lat: lat, lon: lon))
+        
+        return CityMatcher.findBestMatch(for: city, in: response.geonames)
+    }
+    
+    // MARK: - CityInformationServicesProtocol
+    func getCityInformation(with city: City) async throws -> CityDetailInformation? {
+        let geonamesCityData: GeonamesCityData? = try await searchCity(from: city)
+        
+        guard let geonamesCityData, let id = geonamesCityData.id else {
+            return nil
+        }
+        
+        let response: CityDetailInformation = try await networkingManager.request(Endpoint.cityInformation(id: id))
+        return response
     }
 }
+
