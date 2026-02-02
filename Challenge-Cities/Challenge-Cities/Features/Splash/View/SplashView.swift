@@ -13,31 +13,7 @@ struct SplashView: View {
     
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [Color.blue191, Color.blue82],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-            
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            Color.blue217.opacity(0.35),
-                            Color.clear
-                        ],
-                        center: .center,
-                        startRadius: 10,
-                        endRadius: 220
-                    )
-                )
-                .scaleEffect(viewModel.pulseHalo ? 1.05 : 0.95)
-                .opacity(viewModel.showCity ? 1 : 0)
-                .animation(
-                    .easeInOut(duration: 2).repeatForever(autoreverses: true),
-                    value: viewModel.pulseHalo
-                )
+            BackgroundView()
             
             VStack(spacing: 24) {
                 Spacer()

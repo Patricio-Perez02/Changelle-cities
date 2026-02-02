@@ -12,4 +12,13 @@ extension String {
         folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
+    
+    func flagEmoji() -> String {
+        self
+            .uppercased()
+            .unicodeScalars
+            .compactMap { UnicodeScalar(127397 + $0.value) }
+            .map(String.init)
+            .joined()
+    }
 }

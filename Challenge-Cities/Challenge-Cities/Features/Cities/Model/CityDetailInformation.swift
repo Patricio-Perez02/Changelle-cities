@@ -9,6 +9,7 @@ struct CityDetailInformation: Codable, Equatable, Hashable {
     let id: Int?
     let name: String?
     let countryName: String?
+    let countryCode: String?
     let population: Int?
     let continentCode: String?
     let lat, lon: String?
@@ -17,7 +18,7 @@ struct CityDetailInformation: Codable, Equatable, Hashable {
     
     enum CodingKeys: String, CodingKey {
         case id = "geonameId"
-        case name, countryName, population, continentCode, lat
+        case name, countryName, population, countryCode, continentCode, lat
         case lon = "lng"
         case region1 = "adminName1"
         case region2 = "adminName2"
@@ -30,6 +31,7 @@ struct CityDetailInformation: Codable, Equatable, Hashable {
         name: String? = nil,
         countryName: String? = nil,
         population: Int? = nil,
+        countryCode: String? = nil,
         continentCode: String? = nil,
         lat: String? = nil,
         lon: String? = nil,
@@ -41,6 +43,7 @@ struct CityDetailInformation: Codable, Equatable, Hashable {
         self.name = name
         self.countryName = countryName
         self.population = population
+        self.countryCode = countryCode
         self.continentCode = continentCode
         self.lat = lat
         self.lon = lon
