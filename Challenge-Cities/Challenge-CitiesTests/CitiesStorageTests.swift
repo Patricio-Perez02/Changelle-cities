@@ -66,12 +66,53 @@ struct CitiesStorageTests {
         storage.toggle(id: 1)
         storage.toggle(id: 1)
         
-        // After odd number of toggles, should be favorite
         #expect(storage.isFavorite(id: 1))
         
         storage.toggle(id: 1)
         
-        // After even number of toggles, should not be favorite
         #expect(!storage.isFavorite(id: 1))
+    }
+}
+
+/// Tests for CitiesStorage with in-memory mock - verifies persistence behavior.
+@MainActor
+struct CitiesStorageWithMockTests {
+
+    @Test("Real CitiesStorage persists favorites via StorageManaging")
+    func testCitiesStoragePersistence() async throws {
+        let mockStorage = MockStorageManaging()
+        let storage = CitiesStorage(storageManager: mockStorage)
+
+        #expect(!storage.isFavorite(id: 1))
+        storage.toggle(id: 1)
+        #expect(storage.isFavorite(id: 1))
+
+        let newInstance = CitiesStorage(storageManager: mockStorage)
+        #expect(newInstance.isFavorite(id: 1))
+    }
+
+    @Test("CitiesStorage toggle removes favorite")
+    func testCitiesStorageToggleOff() async throws {
+        let mockStorage = MockStorageManaging()
+        let storage = CitiesStorage(storageManager: mockStorage)
+
+        storage.toggle(id: 1)
+        storage.toggle(id: 1)
+        #expect(!storage.isFavorite(id: 1))
+    }
+
+    @Test("CitiesStorage handles multiple favorites")
+    func testCitiesStorageMultipleFavorites() async throws {
+        let mockStorage = MockStorageManaging()
+        let storage = CitiesStorage(storageManager: mockStorage)
+
+        storage.toggle(id: 1)
+        storage.toggle(id: 2)
+        storage.toggle(id: 3)
+
+        #expect(storage.isFavorite(id: 1))
+        #expect(storage.isFavorite(id: 2))
+        #expect(storage.isFavorite(id: 3))
+        #expect(!storage.isFavorite(id: 4))
     }
 }

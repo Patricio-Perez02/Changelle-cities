@@ -383,7 +383,81 @@ struct CitySearchViewModelTests {
         try await Task.sleep(nanoseconds: 50_000_000)
         
         #expect(viewModel.selectedCity?.id == 1)
-        // The position should be updated (we can't easily test the exact region without more setup)
+    }
+
+    @Test("ViewModel navigates to detail when cityMoreInfo succeeds")
+    func testCityMoreInfoSuccess() async throws {
+        let mockServices = MockCitiesServices()
+        let mockStorage = MockCitiesStorage()
+        let sampleCities = makeSampleCities()
+        mockServices.citiesToReturn = sampleCities
+
+        let detailInfo = CityDetailInformation(name: "New York", countryName: "USA")
+        mockServices.cityInformationToReturn = detailInfo
+
+        let viewModel = CitySearchViewModel(
+            services: mockServices,
+            storage: mockStorage
+        )
+        viewModel.onAppear()
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        let newYork = sampleCities.first { $0.name == "New York" }!
+        viewModel.cityMoreInfo(city: newYork)
+        try await Task.sleep(nanoseconds: 200_000_000)
+
+        #expect(mockServices.getCityInformationCallCount == 1)
+        #expect(viewModel.route != nil)
+        #expect(viewModel.errorMessage == nil)
+    }
+
+    @Test("ViewModel shows error when cityMoreInfo fails")
+    func testCityMoreInfoError() async throws {
+        let mockServices = MockCitiesServices()
+        let mockStorage = MockCitiesStorage()
+        mockServices.shouldThrowCityInfoError = true
+
+        let viewModel = CitySearchViewModel(
+            services: mockServices,
+            storage: mockStorage
+        )
+        let city = City(country: "USA", name: "New York", id: 1, coordinates: CoordinatesData(longitude: -74, latitude: 40.7))
+        viewModel.cityMoreInfo(city: city)
+        try await Task.sleep(nanoseconds: 200_000_000)
+
+        #expect(viewModel.errorMessage != nil)
+        #expect(viewModel.errorMessage?.contains("Failed") == true)
+    }
+
+    @Test("ViewModel shows error when cityMoreInfo returns nil")
+    func testCityMoreInfoNoInformation() async throws {
+        let mockServices = MockCitiesServices()
+        let mockStorage = MockCitiesStorage()
+        mockServices.cityInformationToReturn = nil
+
+        let viewModel = CitySearchViewModel(
+            services: mockServices,
+            storage: mockStorage
+        )
+        let city = City(country: "USA", name: "Unknown", id: 99, coordinates: nil)
+        viewModel.cityMoreInfo(city: city)
+        try await Task.sleep(nanoseconds: 200_000_000)
+
+        #expect(viewModel.errorMessage?.contains("No information") == true)
+    }
+
+    @Test("ViewModel does nothing when cityMoreInfo receives nil city")
+    func testCityMoreInfoNilCity() async throws {
+        let mockServices = MockCitiesServices()
+        let mockStorage = MockCitiesStorage()
+
+        let viewModel = CitySearchViewModel(
+            services: mockServices,
+            storage: mockStorage
+        )
+        viewModel.cityMoreInfo(city: nil)
+
+        #expect(mockServices.getCityInformationCallCount == 0)
     }
 }
 
